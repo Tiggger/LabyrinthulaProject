@@ -622,7 +622,7 @@ def create_nematicOrdering_heatmap(image, cells, orderings, cmap='viridis', alph
 
 
 #calculating ordering from qtensor
-def calculateQTensor(cells, batch_size=1000):
+def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
     info = []
     
     for y in range(len(cells)):
@@ -636,7 +636,7 @@ def calculateQTensor(cells, batch_size=1000):
             Image.fromarray(cell).save(temp_path)
             
             # Create analysis object
-            cell_analysis = mc.ImageAnalysis(temp_path, None, 4, 4)
+            cell_analysis = mc.ImageAnalysis(temp_path, None, 4, kernelSize, threshold)
             angles = cell_analysis.phi
 
             #angle debugging

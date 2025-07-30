@@ -16,11 +16,12 @@ import sys
 
 class ImageAnalysis():
     #sorting variables, and formatting image
-    def __init__(self, imagePath, skeletonImagePath, radius, sl):
+    def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold):
         self.imagePath = imagePath
         self.skeletonImagePath = skeletonImagePath
         self.radius = radius
         self.sl = sl
+        self.threshold=threshold
 
         #formatting image, and converting to greyscale
         self.img = Image.open(self.imagePath).convert("L")
@@ -32,7 +33,7 @@ class ImageAnalysis():
             self.skeletonImage = None
         
         #creating binary image
-        self.binary_Image = np.array(self.img) > 128 #128 included for thresholding
+        self.binary_Image = np.array(self.img) > self.threshold #128 included for thresholding
 
         #processes the PNG skeleton - moved from processSkeleton so that can be accessed at all times
         self.processed_png, self.highlighted_png, self.endpoints_png = skel.process_skeleton(self.binary_Image.astype(int), A=10)
@@ -249,50 +250,20 @@ class ImageAnalysis():
 
     #does all, and produces a graph, currently the axes limits are set to length of the lists, but could be changed if need be
     def produceCorrelationGraph(self, coarsening, title, bin_size=2, plotting=True):
-
-        #print('a')
         #Calculations
         distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening) #is this line needed, I think it has already been calculated and can be omitted
 
-        #print('b')
-
         bin_centers, correlation_avg, counts, std_err = self.binIt(bin_size)
 
-        #print('c')
-        #print(bin_centers, correlation_avg)
-
         correlationAvgNematic = self.calculateCorrelationAvgNematic(correlation_avg)
-
-        #print('d')
 
         #Plotting
         if plotting==True:
             self.plotOrientationCorrelation(bin_centers, correlationAvgNematic, std_err, point_size=2, xlim=[0,len(bin_centers)], ylim=[min(correlationAvgNematic), max(correlationAvgNematic)], title=title)
 
-        #print('e')
-
         #temporary
         return bin_centers, correlation_avg
     
-    def produceCorrelationGraphData(self, coarsening, title, bin_size=2):
-
-        #print('a')
-        #Calculations
-        distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening) #is this line needed, I think it has already been calculated and can be omitted
-
-        #print('b')
-
-        bin_centers, correlation_avg, counts, std_err = self.binIt(bin_size)
-
-        #print('c')
-        #print(bin_centers, correlation_avg)
-
-        correlationAvgNematic = self.calculateCorrelationAvgNematic(correlation_avg)
-
-        #print('d')
-
-        return bin_centers, correlationAvgNematic
-
     #produces curves
     def produceBinCenterGraphs(self, coarsening, bin_size=2):
         #Calculations
