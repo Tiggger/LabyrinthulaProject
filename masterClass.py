@@ -70,6 +70,7 @@ class ImageAnalysis():
         axes[3].imshow(self.combined_image, cmap='gray')
         axes[3].set_title(f'Dilated Endpoints (Radius={self.radius}) (PNG)')
 
+        #showing graphs
         for ax in axes:
             ax.axis("off")
         plt.tight_layout()
@@ -79,7 +80,7 @@ class ImageAnalysis():
     def getOrientation(self, filename):
 
         #both items placed in np.array for processing
-        #sl is the size of the gaussian kernal
+        #sl is the size of the gaussian kernal - must be changed for different magnification images
 
         #creating colourmap
         rgb = fn.ColourMap(self.norm_phi)
@@ -117,52 +118,40 @@ class ImageAnalysis():
     #Function which will calculate the correlation of the orientations, makes use of a skeletonised image which can be processed in python or passed into the function
     #print statements have been commented out but left in for the sake of debugging
     def calcualteOrientationCorrelation(self, coarsening=0):
-        """
-        Compute the orientation correlation function for a nematic image.
-    
-        Parameters:
-        img (numpy.ndarray): Binary mask image (1 for valid regions, 0 elsewhere).
-        phi (numpy.ndarray): Orientation angle map (same shape as img).
-        coarsening (int): Coarsening level (0 for all points, 1 for every other, etc.).
-    
-        Returns:
-        distance_list (list): List of computed distances.
-        correlation_list (list): List of corresponding dot product moduli.
-        """
 
-        #check for if skeletonised image has been passed
+        #check for if skeletonised image has been passed, if not then create one
         if self.skeletonImagePath == None:
             skeletonImage=skeletonize(np.array(self.binary_Image))
             yx_indices = np.argwhere(np.array(skeletonImage) > 0)
-            #print(len(yx_indices), 'len yx_indices skeletonCreated')
+            
         else:
-            # Get indices of masked pixels
+            #Get indices of masked pixels
             yx_indices = np.argwhere(np.array(self.skeletonImage) > 0)
-            #print(len(yx_indices), 'len yx_indices skeletonpassed')
+            
         
-        # Apply coarsening only to the `i` loop: Select every (coarsening + 1)th point
+        #Apply coarsening only to the i loop: Select every (coarsening + 1)th point
         if coarsening > 0:
             yx_indices = yx_indices[::(coarsening + 1)]
         
         num_points = len(yx_indices)
-        #print(num_points, 'num_points')
         
         #error checking
         if num_points < 2:
             raise ValueError("Not enough masked points to compute correlation.")
         
-        # Compute pairwise distances and orientation correlations
+        #Compute pairwise distances and orientation correlations
         self.distance_list = []
         self.correlation_list = []
         
-        for i in range(num_points):  # Reduced number of `i` due to coarsening
+        #looping through reduced number of points
+        for i in range(num_points):  
             #print(i)
             y1, x1 = yx_indices[i]
             angle1 = self.phi_rotated[y1, x1]
             
-            v1 = np.array([np.cos(angle1), np.sin(angle1)])  # Nematic symmetry
+            v1 = np.array([np.cos(angle1), np.sin(angle1)])  #Nematic symmetry
             
-            for y2, x2 in np.argwhere(np.array(self.processed_png) > 0):  # Loop over all masked pixels
+            for y2, x2 in np.argwhere(np.array(self.processed_png) > 0):  #Loop over all masked pixels
                 if (y1, x1) == (y2, x2):
                     self.distance_list.append(0)
                     self.correlation_list.append(1)
@@ -170,10 +159,10 @@ class ImageAnalysis():
                 angle2 = self.phi_rotated[y2, x2]
                 v2 = np.array([np.cos(angle2), np.sin(angle2)])
 
-                # Compute modulus of dot product
+                #Compute modulus of dot product
                 dot_product = np.abs(np.dot(v1, v2))
 
-                # Compute Euclidean distance
+                #Compute Euclidean distance
                 distance = np.linalg.norm([y2 - y1, x2 - x1])
 
                 self.distance_list.append(distance)
@@ -197,6 +186,7 @@ class ImageAnalysis():
         counts (numpy.ndarray): Number of contributions in each bin.
         std_err (numpy.ndarray): Standard error of the mean for each bin.
         """
+
         #calculating parameters
         max_distance = max(self.distance_list)
         bins = np.arange(0, max_distance + bin_size, bin_size)
@@ -250,49 +240,19 @@ class ImageAnalysis():
     #does all, and produces a graph, currently the axes limits are set to length of the lists, but could be changed if need be
     def produceCorrelationGraph(self, coarsening, title, bin_size=2, plotting=True):
 
-        #print('a')
         #Calculations
-        distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening) #is this line needed, I think it has already been calculated and can be omitted
-
-        #print('b')
+        distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening) 
 
         bin_centers, correlation_avg, counts, std_err = self.binIt(bin_size)
 
-        #print('c')
-        #print(bin_centers, correlation_avg)
-
         correlationAvgNematic = self.calculateCorrelationAvgNematic(correlation_avg)
-
-        #print('d')
 
         #Plotting
         if plotting==True:
             self.plotOrientationCorrelation(bin_centers, correlationAvgNematic, std_err, point_size=2, xlim=[0,len(bin_centers)], ylim=[min(correlationAvgNematic), max(correlationAvgNematic)], title=title)
 
-        #print('e')
-
-        #temporary
         return bin_centers, correlation_avg
     
-    def produceCorrelationGraphData(self, coarsening, title, bin_size=2):
-
-        #print('a')
-        #Calculations
-        distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening) #is this line needed, I think it has already been calculated and can be omitted
-
-        #print('b')
-
-        bin_centers, correlation_avg, counts, std_err = self.binIt(bin_size)
-
-        #print('c')
-        #print(bin_centers, correlation_avg)
-
-        correlationAvgNematic = self.calculateCorrelationAvgNematic(correlation_avg)
-
-        #print('d')
-
-        return bin_centers, correlationAvgNematic
-
     #produces curves
     def produceBinCenterGraphs(self, coarsening, bin_size=2):
         #Calculations
@@ -314,8 +274,6 @@ class ImageAnalysis():
 
         plt.show()
 
-
-
 """
 #code can handle if you enter a skeletonised image, or if you don't then it will produce one to use
 
@@ -324,9 +282,6 @@ print(a.img)
 #a.getOrientation('bananas')
 a.produceCorrelationGraphData(10000, '0.5% Agar')
 #a.produceBinCenterGraphs(10000)
-
-
-
 
 #b=ImageAnalysis('/Users/johnwhitfield/Desktop/projectSeagrass/code/copyOfJoesCode/Demo/20xBF_1.7.png', None, 4, 4)
 #b.getOrientation('bananas')
