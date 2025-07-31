@@ -88,19 +88,22 @@ class ImageAnalysis():
         masked = fn.ApplyMask(rgb, np.array(self.img), rgb_id = True)
 
         # Plot the results for the PNG image
-        fig, axes = plt.subplots(1, 4, figsize=(20, 5))
+        fig, axes = plt.subplots(1, 5, figsize=(20, 5))
 
-        axes[0].imshow(np.array(self.processed_png))
-        axes[0].set_title("Original Image")
+        axes[0].imshow(self.img, cmap='gray')
+        axes[0].set_title('Original Image')
 
-        axes[1].imshow(rgb)
-        axes[1].set_title("Orientation Map")
+        axes[1].imshow(np.array(self.processed_png))
+        axes[1].set_title("Processed Image")
 
-        axes[2].imshow(masked)
-        axes[2].set_title("Masked Orientation")
+        axes[2].imshow(rgb)
+        axes[2].set_title("Orientation Map")
 
-        axes[3].imshow(colour_wheel, extent=[-1, 1, -1, 1])
-        axes[3].axis('off')
+        axes[3].imshow(masked)
+        axes[3].set_title("Masked Orientation")
+
+        axes[4].imshow(colour_wheel, extent=[-1, 1, -1, 1])
+        axes[4].axis('off')
 
         # Add angle labels around the wheel
         angles = np.linspace(-np.pi, np.pi, 8, endpoint=False)

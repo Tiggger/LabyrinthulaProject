@@ -13,6 +13,10 @@ import tempfile
 import math
 import io 
 
+#imports for synthetic data generation
+import cv2
+from scipy.ndimage import gaussian_filter
+
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from PIL import Image as PILImage
 
@@ -675,6 +679,11 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
             avg_xy = np.mean(cos_theta * sin_theta)  # ⟨cosθsinθ⟩
             avg_yy = np.mean(sin_theta**2)    # ⟨sin²θ⟩
             
+            
+
+
+
+
             # Construct Q tensor directly
             q_tensor = np.array([
                 [2 * avg_xx - 1, 2 * avg_xy],
@@ -732,8 +741,13 @@ def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, arrow_scale
             # Add director arrow if requested
             if arrows:
                 S, director = orderingInfo[y][x]
+
+                #handling if negative, for plotting
+                #if director[0]<0:
+                #    director[0]*=-1
+
                 dx = director[0] * arrow_length  # x-component of arrow
-                dy = -director[1] * arrow_length  # y-component (negative because image y-axis is inverted)
+                dy = director[1] * arrow_length  # y-component (negative because image y-axis is inverted)
                 
                 ax.arrow(
                     x_center, y_center, 
@@ -744,13 +758,6 @@ def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, arrow_scale
                     linewidth=1.5,
                     length_includes_head=True
                 )
-
-
-
-
-
-
-
     
     # Add colourbar
     cbar = plt.colorbar(sm, ax=ax, fraction=0.046, pad=0.04)
@@ -768,6 +775,47 @@ def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, arrow_scale
     
     #return to plot as i wish
     return fig, ax
+
+
+#synthetic data generator - good for testing.
+def generate_nematic(L, d, N, mode='random', domain_size=None, correlation_length=5):
+    #generating matrix of zeros, faster than creating image on the fly
+    image = np.zeros((L, L), dtype=np.uint8)
+    spacing = L // N  # Grid spacing for rods
+    center_offset = spacing // 2  # Center rods in grid cells
+    
+    #instructs how to orient rod on the corresponding position in the image matrix
+    orientations = np.zeros((N, N))
+    
+    #handles when mode is set to random, picks a value between 0 and 4pi (why not 2 pi), and assigns every position in image matrix, 
+    #originally 0, 4*np.pi
+    if mode == 'random':
+        orientations = np.random.uniform(-np.pi, np.pi, (N, N))
+    
+    #handles when the mode is set to smooth
+    elif mode == 'smooth':
+        #randomly assign orientations between ±40pi to every position 
+        orientations = np.random.uniform(-40*np.pi, 40*np.pi, (N, N))  # Start with random noise
+        #blend the change in orientation between each orientation using gaussian blur
+        orientations = gaussian_filter(orientations, sigma=correlation_length)  # Apply smoothing filter
+    
+    #handles when we want domains in the image
+    elif mode == 'domain' and domain_size is not None: #ensure that domain size has been given
+        for i in range(0, N, domain_size):
+            for j in range(0, N, domain_size): #nested loop to access every coordinate on the grid
+                angle = np.random.uniform(0, np.pi) #generate angle between 0 and pi (rod is symmetric and non-polar, so no need to generate from 2pi)
+                orientations[i:i+domain_size, j:j+domain_size] = angle #sets the orientations from i, up to the size of the domain as the same generated angle
+                #unclear to me why the above doesn't overwrite the domain size right now
+    
+    #generating image
+    for i in range(N):
+        for j in range(N):
+            cx, cy = i * spacing + center_offset, j * spacing + center_offset #calculates center of rod to plot for every coordinate
+            angle = orientations[i, j] #accesses correct angle
+            dx, dy = int((d / 2) * np.cos(angle)), int((d / 2) * np.sin(angle)) #trig to calculate some change 
+            cv2.line(image, (cx - dx, cy - dy), (cx + dx, cy + dy), 255, 1) #image where you want to draw, start coord, end coord, colour, thickness
+    
+    return image, orientations
 
 
 #-------------------------------------
