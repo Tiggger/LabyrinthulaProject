@@ -532,7 +532,7 @@ def create_interactive_vector_analysis(image, cells, densities, cmap='viridis', 
 #nematic ordering section
 
 #this function is computationally quite heavy, and takes a long while to run
-def calculateOrdering(cells):
+def calculateOrdering(cells, kernelSize, threshold):
     #place to store results
     ordering=[]
 
@@ -552,7 +552,7 @@ def calculateOrdering(cells):
             Image.fromarray(cell).save(temp_path)
 
             #create object to get angles
-            cell_analysis=mc.ImageAnalysis(temp_path, None, 4, 4)
+            cell_analysis=mc.ImageAnalysis(temp_path, None, 4, kernelSize, threshold)
 
             #line for debugging
             #print(cell_analysis.phi_new, 'phi_new')

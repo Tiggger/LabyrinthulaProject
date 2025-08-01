@@ -19,7 +19,7 @@ class ImageAnalysis():
     def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold):
         self.imagePath = imagePath
         self.skeletonImagePath = skeletonImagePath
-        self.radius = radius
+        self.radius = radius #for end points of cells (network)
         self.sl = sl
         self.threshold=threshold
 
@@ -104,6 +104,24 @@ class ImageAnalysis():
 
         axes[4].imshow(colour_wheel, extent=[-1, 1, -1, 1])
         axes[4].axis('off')
+
+        """
+        #square plotting for better presentation
+        fig, axes = plt.subplots(2, 2, figsize=(10, 10))  # 2x2 grid
+
+        axes[0, 0].imshow(np.array(self.processed_png))
+        axes[0, 0].set_title("Processed Image")
+
+        axes[0, 1].imshow(rgb)
+        axes[0, 1].set_title("Orientation Map")
+
+        axes[1, 0].imshow(masked)
+        axes[1, 0].set_title("Masked Orientation")
+
+        axes[1, 1].imshow(colour_wheel, extent=[-1, 1, -1, 1])
+        axes[1, 1].axis('off')
+
+        """
 
         # Add angle labels around the wheel
         angles = np.linspace(-np.pi, np.pi, 8, endpoint=False)
@@ -244,7 +262,7 @@ class ImageAnalysis():
 
         #setting properties of graph
         plt.xlim(xlim[0], xlim[1])
-        plt.xlabel('Distance (Microns)')
+        plt.xlabel('Distance (Pixels)')
         plt.ylim(ylim[0], ylim[1])
         plt.ylabel('Correlation')
         plt.title(title)
