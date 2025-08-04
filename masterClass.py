@@ -17,22 +17,13 @@ import sys
 class ImageAnalysis():
     #sorting variables, and formatting image
     #expecting magnification to be entered in as string '20x' etc, but perhaps number is better
-    def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold, magnification):
+    def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold):
         self.imagePath = imagePath
         self.skeletonImagePath = skeletonImagePath
         self.radius = radius #for end points of cells (network)
         self.sl = sl
         self.threshold=threshold
-        self.magnification = magnification
-
-        #in units of microns
-        if self.magnification == '20x':
-            self.pixelSize = 0.3236
-        elif self.magnification == '10x':
-            self.pixelSize = 0.651
-        elif self.magnification == '4x':
-            self.pixelSize = 1.6169
-
+    
         #formatting image, and converting to greyscale
         self.img = Image.open(self.imagePath).convert("L")
 
@@ -57,6 +48,10 @@ class ImageAnalysis():
 
         #normalising corrected angles - moved from getOrientation so can be accessed at all times
         self.norm_phi = fn.NormaliseAngle(self.phi_rotated)
+
+        #precompute
+        self.rgb = fn.ColourMap(self.norm_phi)
+        self.masked = fn.ApplyMask(self.rgb, np.array(self.img), rgb_id = True)
 
     #function which processes and plots the skeleton images
     def processSkeleton(self):
@@ -93,9 +88,8 @@ class ImageAnalysis():
         #sl is the size of the gaussian kernal
 
         #creating colourmap
-        rgb = fn.ColourMap(self.norm_phi)
         colour_wheel, colour_wheel_transparent = fn.ColourWheel()
-        masked = fn.ApplyMask(rgb, np.array(self.img), rgb_id = True)
+        
 
         # Plot the results for the PNG image
         fig, axes = plt.subplots(1, 5, figsize=(20, 5))
@@ -106,10 +100,10 @@ class ImageAnalysis():
         axes[1].imshow(np.array(self.processed_png))
         axes[1].set_title("Processed Image")
 
-        axes[2].imshow(rgb)
+        axes[2].imshow(self.rgb)
         axes[2].set_title("Orientation Map")
 
-        axes[3].imshow(masked)
+        axes[3].imshow(self.masked)
         axes[3].set_title("Masked Orientation")
 
         axes[4].imshow(colour_wheel, extent=[-1, 1, -1, 1])
@@ -141,7 +135,7 @@ class ImageAnalysis():
             angle_degrees = np.degrees(angle_index)
             plt.text(x_text, y_text, f"{int(angle_degrees)}°", ha='center', va='center')
 
-        skel.SaveFigure(masked,filename, rgb=True)
+        skel.SaveFigure(self.masked,filename, rgb=True)
 
         #show plots
         plt.show()
@@ -267,10 +261,20 @@ class ImageAnalysis():
         return (correlationAvg - 0.5)/(1-0.5)
     
     #plotting orientation correlation graph
-    def plotOrientationCorrelation(self, bin_centers, correlation_avg_nematic, std_err, point_size, xlim, ylim, title):
+    def plotOrientationCorrelation(self, bin_centers, correlation_avg_nematic, std_err, point_size, xlim, ylim, title, magnification):
+        
+        #in units of microns
+        if magnification == 20:
+            pixelSize = 0.3236
+        elif magnification == 10:
+            pixelSize = 0.651
+        elif magnification == 4:
+            pixelSize = 1.6169
+
+
 
         #convert from pixels to microns for plotting
-        bin_centers = bin_centers*self.pixelSize
+        bin_centers = bin_centers*pixelSize
 
         plt.errorbar(bin_centers, correlation_avg_nematic, yerr=std_err, label='Orientation Correlation') #removed s=point_size, it doesnt like it
 
@@ -285,7 +289,7 @@ class ImageAnalysis():
         plt.show()
 
     #does all, and produces a graph, currently the axes limits are set to length of the lists, but could be changed if need be
-    def produceCorrelationGraph(self, coarsening, title, bin_size=2, plotting=True):
+    def produceCorrelationGraph(self, coarsening, title, magnification, bin_size=2, plotting=True):
         #Calculations
         distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening) #is this line needed, I think it has already been calculated and can be omitted
 
@@ -295,7 +299,7 @@ class ImageAnalysis():
 
         #Plotting
         if plotting==True:
-            self.plotOrientationCorrelation(bin_centers, correlationAvgNematic, std_err, point_size=2, xlim=[0,len(bin_centers)], ylim=[min(correlationAvgNematic), max(correlationAvgNematic)], title=title)
+            self.plotOrientationCorrelation(bin_centers, correlationAvgNematic, std_err, point_size=2, xlim=[0,len(bin_centers)], ylim=[min(correlationAvgNematic), max(correlationAvgNematic)], title=title, magnification=magnification)
 
         #temporary
         return bin_centers, correlation_avg

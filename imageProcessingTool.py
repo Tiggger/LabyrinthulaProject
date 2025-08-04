@@ -12,6 +12,10 @@ import os
 import tempfile
 import math
 import io 
+from skimage.transform import resize
+
+#Joe code import
+import Functions.Orientation as fn
 
 #imports for synthetic data generation
 import cv2
@@ -641,6 +645,7 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
             
             # Create analysis object
             cell_analysis = mc.ImageAnalysis(temp_path, None, 4, kernelSize, threshold)
+            #getting relevant information
             angles = cell_analysis.phi
 
             #angle debugging
@@ -680,10 +685,6 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
             avg_yy = np.mean(sin_theta**2)    # ⟨sin²θ⟩
             
             
-
-
-
-
             # Construct Q tensor directly
             q_tensor = np.array([
                 [2 * avg_xx - 1, 2 * avg_xy],
@@ -702,13 +703,17 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
     return info
 
 
-def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
+
+def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
     #Create figure with two subplots (one for image, one for colourbar)
     fig, ax = plt.subplots(1, 1, figsize=(12, 8))
-    
-    #Display the original image
-    ax.imshow(image, cmap='gray')
-    
+
+    # Display either the original or masked image
+    if masked_image is not None:
+        ax.imshow(masked_image)  # RGB masked image
+    else:
+        ax.imshow(image, cmap='gray')
+
     #Get cell dimensions from first cell
     cell_height, cell_width = cells[0][0].shape
 
@@ -747,7 +752,7 @@ def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, arrow_scale
                 #    director[0]*=-1
 
                 dx = director[0] * arrow_length  # x-component of arrow
-                dy = director[1] * arrow_length  # y-component (negative because image y-axis is inverted)
+                dy = -director[1] * arrow_length  # y-component (negative because image y-axis is inverted)
                 
                 ax.arrow(
                     x_center, y_center, 
