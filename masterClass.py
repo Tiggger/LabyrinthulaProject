@@ -16,12 +16,22 @@ import sys
 
 class ImageAnalysis():
     #sorting variables, and formatting image
-    def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold):
+    #expecting magnification to be entered in as string '20x' etc, but perhaps number is better
+    def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold, magnification):
         self.imagePath = imagePath
         self.skeletonImagePath = skeletonImagePath
         self.radius = radius #for end points of cells (network)
         self.sl = sl
         self.threshold=threshold
+        self.magnification = magnification
+
+        #in units of microns
+        if self.magnification == '20x':
+            self.pixelSize = 0.3236
+        elif self.magnification == '10x':
+            self.pixelSize = 0.651
+        elif self.magnification == '4x':
+            self.pixelSize = 1.6169
 
         #formatting image, and converting to greyscale
         self.img = Image.open(self.imagePath).convert("L")
@@ -258,11 +268,16 @@ class ImageAnalysis():
     
     #plotting orientation correlation graph
     def plotOrientationCorrelation(self, bin_centers, correlation_avg_nematic, std_err, point_size, xlim, ylim, title):
+
+        #convert from pixels to microns for plotting
+        bin_centers = bin_centers*self.pixelSize
+
         plt.errorbar(bin_centers, correlation_avg_nematic, yerr=std_err, label='Orientation Correlation') #removed s=point_size, it doesnt like it
 
         #setting properties of graph
-        plt.xlim(xlim[0], xlim[1])
-        plt.xlabel('Distance (Pixels)')
+        #plt.xlim(xlim[0], xlim[1])
+        plt.xlim(bin_centers[0], bin_centers[-1])
+        plt.xlabel('Distance ($\mu m$)')
         plt.ylim(ylim[0], ylim[1])
         plt.ylabel('Correlation')
         plt.title(title)
