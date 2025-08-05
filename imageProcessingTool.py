@@ -13,6 +13,7 @@ import tempfile
 import math
 import io 
 from skimage.transform import resize
+import decimal
 
 #Joe code import
 import Functions.Orientation as fn
@@ -252,6 +253,7 @@ def create_interactive_heatmap(image, cells, densities, kernelSize, threshold, m
             
         #Get the clicked cell from the cell list
         clicked_cell = cells[cell_y][cell_x]
+        density=densities[cell_y][cell_x]
         
         #Create a temporary image file for the cell, need this due to how masterClass has been written, needs image path
         temp_path = "/tmp/clicked_cell.tif"
@@ -268,12 +270,13 @@ def create_interactive_heatmap(image, cells, densities, kernelSize, threshold, m
         
         # Create a new figure for the correlation graph
         plt.figure(figsize=(10, 4))
+
         
         # Show the cell image
         plt.subplot(1, 2, 1)
         #shows image in cell we have clicked on 
         plt.imshow(clicked_cell, cmap='gray')
-        plt.title(f"Cell ({cell_x}, {cell_y})")
+        plt.title(f"Cell ({cell_x}, {cell_y}), Density: {round(density, 3)}")
         plt.axis('off')
         
         # Show the correlation graph
