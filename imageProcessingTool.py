@@ -636,7 +636,7 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
     for y in range(len(cells)):
         rowInfo=[]
         for x in range(len(cells[y])):
-            cell = cells[x][y]
+            cell = cells[y][x]
             
             # Save cell as image (keeping your existing code)
             temp_dir = tempfile.gettempdir()
@@ -645,8 +645,8 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
             
             # Create analysis object
             cell_analysis = mc.ImageAnalysis(temp_path, None, 4, kernelSize, threshold)
-            #getting relevant information
-            angles = cell_analysis.phi
+            #getting relevant information - originally .phi, but should it be .norm_phi?
+            angles = cell_analysis.phi_new
 
             #angle debugging
 
