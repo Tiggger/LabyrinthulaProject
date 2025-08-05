@@ -29,8 +29,9 @@ import sys
 
 #function to split image into cells
 def splitIntoCells(img, xsplit, ysplit):
-    #get image shape
+    
     rows, cols = img.shape
+
     #calculate the height of a cell
     cellHeight = rows // ysplit
     #calculate the width of a cell
@@ -66,7 +67,15 @@ def splitIntoCells(img, xsplit, ysplit):
     return cells
 
 #function to calculate density of a cell in the image
-def calculateDensity(cells):
+def calculateDensity(cells, binaryImage=False):
+
+    if binaryImage==True:
+        off=False
+        on=True
+    else:
+        off=76
+        on=188
+
     #matrix to store values of density
     densities = []
 
@@ -77,8 +86,8 @@ def calculateDensity(cells):
         row_densities = []
         for cell in row:
             #count the number of each type of pixel. 76 and 188 are pixel values that come out of stitched segmented grey scale image
-            count0 = np.sum(cell == 76)
-            count1 = np.sum(cell == 188)
+            count0 = np.sum(cell == off)
+            count1 = np.sum(cell == on)
             total = count0 + count1
             
             #Calculate the density of a cell considering fraction of pixels that are cell
@@ -179,7 +188,7 @@ def create_density_heatmap(image, cells, densities, cmap='viridis', alpha=0.5):
 
 
 #plots a density heatmap, but when you click on a cell, will calculate ordering correlation function using Joe's code
-def create_interactive_heatmap(image, cells, densities, cmap='viridis', alpha=0.5):
+def create_interactive_heatmap(image, cells, densities, kernelSize, threshold, magnification, cmap='viridis', alpha=0.5):
     #create figure
     fig, ax = plt.subplots(figsize=(12, 8))
     
@@ -253,7 +262,8 @@ def create_interactive_heatmap(image, cells, densities, cmap='viridis', alpha=0.
             imagePath=temp_path,
             skeletonImagePath=None,
             radius=4,
-            sl=4
+            sl=kernelSize, 
+            threshold=threshold
         )
         
         # Create a new figure for the correlation graph
@@ -270,8 +280,10 @@ def create_interactive_heatmap(image, cells, densities, cmap='viridis', alpha=0.
         plt.subplot(1, 2, 2)
         #shows the calculated correlation graph for the given cell
         cell_analysis.produceCorrelationGraph(
-            coarsening=10000,
+            #changed from 10000 to 1000
+            coarsening=1000,
             title=f"Orientation Correlation - Cell ({cell_x}, {cell_y})",
+            magnification=magnification,
             bin_size=2
         )
         
