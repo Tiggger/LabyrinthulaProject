@@ -205,6 +205,7 @@ class ImageAnalysis():
                 self.distance_list.append(distance)
                 self.correlation_list.append(dot_product**2)
 
+                
         return self.distance_list, self.correlation_list
     
     #Binning function, requires bin size to be entered
