@@ -31,7 +31,14 @@ import sys
 #function to split image into cells
 def splitIntoCells(img, xsplit, ysplit):
     
-    rows, cols = img.shape
+    #to handle if the image has colour data, c not currently used, but could be employed later on
+    if len(img.shape)==2:
+        rows, cols = img.shape
+    elif len(img.shape)==3:
+        rows, cols, c = img.shape
+
+    #include colour data but not necessarily going to use
+    #rows, cols, c = img.shape
 
     #calculate the height of a cell
     cellHeight = rows // ysplit
@@ -71,11 +78,13 @@ def splitIntoCells(img, xsplit, ysplit):
 def calculateDensity(cells, binaryImage=False):
 
     if binaryImage==True:
-        off=False
-        on=True
+        off=True #swapped, I think this is correct to be this way
+        on=False
     else:
         off=76
         on=188
+
+    #print(cells, 'cells')
 
     #matrix to store values of density
     densities = []
@@ -197,7 +206,11 @@ def create_interactive_heatmap(image, cells, densities, kernelSize, threshold, m
     ax.imshow(image, cmap='gray')
     
     #Get cell dimensions
-    cell_height, cell_width = cells[0][0].shape
+    #to handle if image has colour information, c is not currently used but could be employed later
+    if len(cells[0][0].shape)==2:
+        cell_height, cell_width = cells[0][0].shape
+    elif len(cells[0][0].shape)==3:
+        cell_height, cell_width, c = cells[0][0].shape
     
     #Create normalisation and colourmap
     norm = Normalize(vmin=0, vmax=1)
@@ -660,7 +673,7 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
             
             # Create analysis object
             cell_analysis = mc.ImageAnalysis(temp_path, None, 4, kernelSize, threshold)
-            #getting relevant information - originally .phi, but should it be .norm_phi?
+            #getting relevant information - originally .phi, but should it be .norm_phi? Been using phi_new
             angles = cell_analysis.phi_new
 
             #angle debugging
@@ -717,8 +730,6 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
     
     return info
 
-
-
 def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
     #Create figure with two subplots (one for image, one for colourbar)
     fig, ax = plt.subplots(1, 1, figsize=(12, 8))
@@ -730,7 +741,11 @@ def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, masked_imag
         ax.imshow(image, cmap='gray')
 
     #Get cell dimensions from first cell
-    cell_height, cell_width = cells[0][0].shape
+    #check for colour information and handle appropriately 
+    if len(cells[0][0].shape)==2:
+        cell_height, cell_width = cells[0][0].shape
+    elif len(cells[0][0].shape)==3:
+        cell_height, cell_width, c = cells[0][0].shape
 
     #calculating the size of the arrows to be plotted
     arrow_length = min(cell_width, cell_height) * arrow_scale
@@ -795,6 +810,149 @@ def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, masked_imag
     
     #return to plot as i wish
     return fig, ax
+
+#qtensor nematic ordering map, but with interactive calculation 
+def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize, threshold, magnification, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
+    #Create figure with two subplots (one for image, one for colourbar)
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+
+    # Display either the original or masked image
+    if masked_image is not None:
+        ax.imshow(masked_image)  # RGB masked image
+    else:
+        ax.imshow(image, cmap='gray')
+
+    #Get cell dimensions from first cell
+    #check for colour information and handle appropriately 
+    if len(cells[0][0].shape)==2:
+        cell_height, cell_width = cells[0][0].shape
+    elif len(cells[0][0].shape)==3:
+        cell_height, cell_width, c = cells[0][0].shape
+
+    #calculating the size of the arrows to be plotted - only used for length of arrow head right now
+    arrow_length = min(cell_width, cell_height) * arrow_scale
+    
+    #Create normalisation for the colourmap
+    norm = Normalize(vmin=0, vmax=1)  #Assuming densities are 0-1
+    
+    #Create a scalar mappable for the colourbar
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+
+    #Add coloured rectangles for each cell
+    for y in range(len(cells)):
+        for x in range(len(cells[0])):
+            # Get coordinates for this cell (center point)
+            x_center = x * cell_width + cell_width/2
+            y_center = y * cell_height + cell_height/2
+            
+            
+            
+            # Add director arrow if requested
+            if arrows:
+                S, director = orderingInfo[y][x]
+
+                #handling if negative, for plotting
+                #if director[0]<0:
+                #    director[0]*=-1
+
+                #replaced arrow length with S, scaled by dimensions of box, divided by 2 s.t. the arrow remains within the dimensions of the box
+                dx = director[0] * S * (cell_width/2)  # x-component of arrow
+                dy = -director[1] * S * (cell_height/2)  # y-component (negative because image y-axis is inverted)
+                
+                ax.arrow(
+                    x_center, y_center, 
+                    dx, dy,
+                    head_width=S*0.3*(cell_width/2), #scaled by cell width 
+                    head_length=S*0.4*(cell_height/2), #scaled by cell height
+                    fc='white', ec='white',
+                    linewidth=1.5,
+                    length_includes_head=True
+                )
+    
+    # Add colourbar
+    #cbar = plt.colorbar(sm, ax=ax, fraction=0.046, pad=0.04)
+    #cbar.set_label('Nematic Ordering')
+    
+    #Add grid lines
+    for y in range(len(cells)+1):
+        ax.axhline(y * cell_height, color='white', linestyle=':', linewidth=0.5)
+    for x in range(len(cells[0])+1):
+        ax.axvline(x * cell_width, color='white', linestyle=':', linewidth=0.5)
+    
+    #plot attributes
+    ax.set_title(f"Nematic Ordering Heatmap ({len(cells[0])}x{len(cells)} grid)")
+    ax.axis('off')
+    
+    #Click event handler, telling computer to do when you click
+    def onclick(event):
+        #print to let me know click has been registered
+        print('click worked')
+
+        #if click out of bounds
+        if event.inaxes != ax:
+            return
+            
+        #Get click coordinates
+        x_click, y_click = int(event.xdata), int(event.ydata)
+        
+        # Determine which cell was clicked
+        cell_x = x_click // cell_width
+        cell_y = y_click // cell_height
+        
+        #Safety check, if outside of bounds
+        if cell_y >= len(cells) or cell_x >= len(cells[0]):
+            return
+            
+        #Get the clicked cell from the cell list
+        clicked_cell = cells[cell_y][cell_x]
+        ordering=orderingInfo[cell_y][cell_x][0] #could be orderingInfo...[1] instead
+        
+        #Create a temporary image file for the cell, need this due to how masterClass has been written, needs image path
+        temp_path = "/tmp/clicked_cell.tif"
+        Image.fromarray(clicked_cell).save(temp_path)
+        
+        #Analyse the cell, putting into masterClass
+        cell_analysis = mc.ImageAnalysis(
+            imagePath=temp_path,
+            skeletonImagePath=None,
+            radius=4,
+            sl=kernelSize, 
+            threshold=threshold
+        )
+        
+        # Create a new figure for the correlation graph
+        plt.figure(figsize=(10, 4))
+
+        
+        # Show the cell image
+        plt.subplot(1, 2, 1)
+        #shows image in cell we have clicked on 
+        plt.imshow(clicked_cell, cmap='gray')
+        plt.title(f"Cell ({cell_x}, {cell_y}), Ordering (S): {round(ordering, 3)}")
+        plt.axis('off')
+        
+        # Show the correlation graph
+        plt.subplot(1, 2, 2)
+        #shows the calculated correlation graph for the given cell
+        cell_analysis.produceCorrelationGraph(
+            #changed from 10000 to 1000
+            coarsening=coarsening,
+            title=f"Orientation Correlation - Cell ({cell_x}, {cell_y})",
+            magnification=magnification,
+            bin_size=2
+        )
+        
+        #show off the plots
+        plt.tight_layout()
+        plt.show()
+
+    # Connect the click event
+    fig.canvas.mpl_connect('button_press_event', onclick)
+    
+    #show everything
+    plt.tight_layout()
+    plt.show()
 
 
 #synthetic data generator - good for testing.

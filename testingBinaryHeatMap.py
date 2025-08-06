@@ -9,7 +9,9 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 #image_dir='/Volumes/SANDISK/images/nikon3/28.07.25/1.2%/2025-07-28_singleCellResolving_20xwithExtender_BF_featureImages_mixofExposuretimes_exports/2025-07-28_singleCellResolving+20xwithExtender_BF_featureImages_mixofExposuretimes_MMStack_Default.ome1.jpg'
-image_dir='/Volumes/SANDISK/images/nikon3/28.07.25/1.2%/2025-07-28_singleCellResolving_20xwithExtender_BF_featureImages_mixofExposuretimes_exports/2025-07-28_singleCellResolving+20xwithExtender_BF_featureImages_mixofExposuretimes_MMStack_Default.ome.jpg'
+#image_dir='/Volumes/SANDISK/images/nikon3/28.07.25/1.2%/2025-07-28_singleCellResolving_20xwithExtender_BF_featureImages_mixofExposuretimes_exports/2025-07-28_singleCellResolving+20xwithExtender_BF_featureImages_mixofExposuretimes_MMStack_Default.ome.jpg'
+
+image_dir='/Users/johnwhitfield/Desktop/proper/t:19:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 img = np.array(Image.open(image_dir))
 xsplit = 10
