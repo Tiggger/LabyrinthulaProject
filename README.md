@@ -75,7 +75,7 @@ Can pass an image into this code, in order to create density heatmaps (if the im
 
   calculates the Q Tensor from the angles which are calculated when running the masterClass code. Once calcualted, it extracts the ordering paramter (S) and the director.
 
-  ##create_nematicOrderingTensor_heatmap_interactive
+  ## create_nematicOrderingTensor_heatmap_interactive
 
   Creates a heatmap of nematic ordering. Very similar to the density heatmap, but the differences will be explained now. For each image cell, the nematic ordering is calculated. Instead of a colour overlay to represent S (0 = no ordering, 1 = perfectly ordered), the director (which points in direction of ordering) is plotted at the centre of the image cell, and is scaled to S. Therefore if a small arrow is plotted it means there is little ordering, and vice versa. Therefore, there is no colour bar with this plot. If you click on an image cell, it will calculate the ordering correlation function (from masterClass code) of that particular area. Graph along with the image in that image cell will be outputted in a new window. 
 
