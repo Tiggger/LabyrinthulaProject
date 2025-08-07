@@ -5,6 +5,7 @@ import numpy as np # type: ignore
 import importlib
 import os
 from skimage.morphology import skeletonize, remove_small_holes, remove_small_objects
+from skimage.color import rgb2gray
 
 import Functions.ProcessSkeleton as skel
 import Functions.Orientation as fn
@@ -27,11 +28,25 @@ class ImageAnalysis():
         #formatting image, and converting to greyscale
         self.img = Image.open(self.imagePath).convert("L")
 
+        #print(np.array(self.img), 'nparr img')
+
         #check if skeleton image has been entered
         if skeletonImagePath!=None:
             self.skeletonImage = Image.open(self.skeletonImagePath).convert("L")
-        else:
-            self.skeletonImage = None
+        #creating skeletonised image within pipeline
+        elif skeletonImagePath==None:
+            if len(np.array(self.img).shape) == 3:
+                img_gray = rgb2gray(np.array(self.img))
+            else:
+                img_gray = np.array(self.img)
+            
+            #normalising
+            img_gray = img_gray / 255.0 if img_gray.max() > 1 else img_gray
+
+            threshold = 0.5
+            binary = np.array(img_gray) > threshold
+
+            self.skeletonImage = skeletonize(binary)
         
         #creating binary image
         self.binary_Image = np.array(self.img) > self.threshold #128 included for thresholding
@@ -40,7 +55,9 @@ class ImageAnalysis():
         self.processed_png, self.highlighted_png, self.endpoints_png = skel.process_skeleton(self.binary_Image.astype(int), A=10)
 
         #calculating the angle and ordering parameter - moved from getOrientation to be accessed at all times
-        self.phi, self.nop = fn.OrientationFilter(np.array(self.processed_png), self.sl)
+        #self.phi, self.nop = fn.OrientationFilter(np.array(self.processed_png), self.sl)
+        #changed this line to calculate the angles from the skeletonised image - ANGLES COMING FROM SKELETON
+        self.phi, self.nop = fn.OrientationFilter(np.array(self.skeletonImage), self.sl)
 
         #checking angles - moved from getOrientation so can be accessed at all times
         self.phi_rotated = fn.rotate_and_wrap_angles(self.phi,theta = np.pi/2)
@@ -51,7 +68,10 @@ class ImageAnalysis():
 
         #precompute
         self.rgb = fn.ColourMap(self.norm_phi)
+        #putting rgb from skeleton angles onto the nonskeletonised image - what we want
         self.masked = fn.ApplyMask(self.rgb, np.array(self.img), rgb_id = True)
+
+        self.colour_wheel, self.colour_wheel_transparent = fn.ColourWheel()
 
     #function which processes and plots the skeleton images
     def processSkeleton(self):
@@ -88,7 +108,8 @@ class ImageAnalysis():
         #sl is the size of the gaussian kernal
 
         #creating colourmap
-        colour_wheel, colour_wheel_transparent = fn.ColourWheel()
+        #colour_wheel, colour_wheel_transparent = fn.ColourWheel()
+        
         
 
         # Plot the results for the PNG image
@@ -106,7 +127,7 @@ class ImageAnalysis():
         axes[3].imshow(self.masked)
         axes[3].set_title("Masked Orientation")
 
-        axes[4].imshow(colour_wheel, extent=[-1, 1, -1, 1])
+        axes[4].imshow(self.colour_wheel, extent=[-1, 1, -1, 1])
         axes[4].axis('off')
 
         """

@@ -724,6 +724,10 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
             S = np.max(eigenvalues)
             director = eigenvectors[:, np.argmax(eigenvalues)]
 
+            #ridding of artificial ordering of blank cells, don't expect higher than ~0.8
+            if S >= 0.8:
+                S=0
+
             rowInfo.append([S, director])
         
         info.append(rowInfo)
@@ -812,9 +816,9 @@ def create_nematicOrderingTensor_heatmap(image, cells, orderingInfo, masked_imag
     return fig, ax
 
 #qtensor nematic ordering map, but with interactive calculation 
-def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize, threshold, magnification, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
+def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize, threshold, magnification, colourWheel, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
     #Create figure with two subplots (one for image, one for colourbar)
-    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    fig, (ax, axWheel) = plt.subplots(1, 2, figsize=(12, 8), gridspec_kw={'width_ratios': [3, 1]})
 
     # Display either the original or masked image
     if masked_image is not None:
@@ -873,6 +877,17 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
     # Add colourbar
     #cbar = plt.colorbar(sm, ax=ax, fraction=0.046, pad=0.04)
     #cbar.set_label('Nematic Ordering')
+
+    axWheel.imshow(colourWheel, extent=[-1, 1, -1, 1])
+    axWheel.axis('off')
+
+    # Add angle labels around the wheel
+    angles = np.linspace(-np.pi, np.pi, 8, endpoint=False)
+    for angle_index in angles:
+        x_text = 1.1 * np.cos(angle_index)
+        y_text = 1.1 * np.sin(angle_index)
+        angle_degrees = np.degrees(angle_index)
+        axWheel.text(x_text, y_text, f"{int(angle_degrees)}°", ha='center', va='center')
     
     #Add grid lines
     for y in range(len(cells)+1):
