@@ -7,6 +7,10 @@ We are interested in the behaviour of the protist Labyrinthula, and this code co
 
 A streamlined OOP instance of an ordering correlation analysis tool created by Joseph Knight. Allows for easy application of the functions to data.
 
+  # __init__
+
+  Testing writing under here.
+
 # imageProcessingTool
 
 Combines image stitching tools, with ordering tools from masterClass. The stitched image can be split into user defined sections (number of cells in x and y), and further analysis is user interactive, allowing for flexibility in what you want to analyse. 
