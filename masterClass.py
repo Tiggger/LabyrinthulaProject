@@ -43,7 +43,7 @@ class ImageAnalysis():
             #normalising
             img_gray = img_gray / 255.0 if img_gray.max() > 1 else img_gray
 
-            threshold = 0.5
+            threshold = 0.7 #0.5 fairly arbitrary
             binary = np.array(img_gray) > threshold
 
             self.skeletonImage = skeletonize(binary)

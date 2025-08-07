@@ -8,16 +8,73 @@ import imageProcessingTool as dc
 import matplotlib.pyplot as plt
 from PIL import Image
 
-#image_dir='/Users/johnwhitfield/Desktop/proper/t:19:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+"""
+LONG EXPOSURES
 
+Look nice
+"""
+#img 1 
 #image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
+#img 2
+#image_dir='/Users/johnwhitfield/Desktop/proper/t:19:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+
+#img 3 
 image_dir='/Users/johnwhitfield/Desktop/proper/t:21:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
+"""
+SHORT EXPOSURES
 
-xsplit=1
-ysplit=1
-kernelSize=6 #20
+Not as good as the long exposures
+"""
+#img 1
+#image_dir='/Users/johnwhitfield/Desktop/proper/shorterExposures/t:1:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_f.jpg'
+
+#img 2 
+#image_dir='/Users/johnwhitfield/Desktop/proper/shorterExposures/t:2:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_f.jpg'
+
+#img 3
+#image_dir='/Users/johnwhitfield/Desktop/proper/shorterExposures/t:4:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_f.jpg'
+
+
+"""
+BF tile images
+
+Actually look pretty good
+"""
+#img 1
+#image_dir='/Users/johnwhitfield/Desktop/proper/tileImages/2025-07-25_20xwithExtender_singleCell_tileImages_1_MMStack_1-P...5_20xwithExtender_singleCell_tileImages_1_MMStack_1-Pos001_001-1.jpg'
+
+#img 2
+#image_dir='/Users/johnwhitfield/Desktop/proper/tileImages/2025-07-25_20xwithExtender_singleCell_tileImages_1_MMStack_1-P...5_20xwithExtender_singleCell_tileImages_1_MMStack_1-Pos002_001-1.jpg'
+
+"""
+Video snapshot image
+
+Looks ok
+"""
+#img 1 
+#image_dir='/Users/johnwhitfield/Desktop/proper/videoImages/t:13:60 - 2025-07-25_20xwithExtender_BF_10mintimeLapse_1_MMS.jpg'
+
+"""
+Ph1 images
+
+Experimental, as cells are black space, but white space surrounds them
+"""
+#img 1
+#image_dir='/Users/johnwhitfield/Desktop/proper/ph1/2025-07-25_20xwithExtender_Ph1_singleCell_tileImages_25pcOverl...r_Ph1_singleCell_tileImages_25pcOverlap_1_MMStack_1-Pos000_001-1.jpg'
+
+#img 2 
+#image_dir='/Users/johnwhitfield/Desktop/proper/ph1/t:15:24 - 2025-07-28_singleCellResolving_20xwithExtender_Ph1.jpg'
+
+#img 3
+#image_dir='/Users/johnwhitfield/Desktop/proper/ph1/t:18:24 - 2025-07-28_singleCellResolving_20xwithExtender_Ph1.jpg'
+
+#seem to be pretty good settings
+xsplit=7*3
+ysplit=7*3
+kernelSize=4 #doesn't work well for synthetic data
+#kernelSize=10 #good for synthetic data
 threshold=128
 
 

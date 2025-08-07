@@ -658,13 +658,18 @@ def create_nematicOrdering_heatmap(image, cells, orderings, cmap='viridis', alph
 
 
 #calculating ordering from qtensor
-def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
+def calculateQTensor(cells, kernelSize, threshold, batch_size=1000, intensityThreshold=0.1):
     info = []
     
     for y in range(len(cells)):
         rowInfo=[]
         for x in range(len(cells[y])):
             cell = cells[y][x]
+
+            #check if cell is very dark, if so then do not bother calculating QTensor
+            if np.mean(cell) < intensityThreshold * 255:  # Assuming 8-bit image
+                rowInfo.append([0.0, np.array([0.0, 0.0])])  # Zero order, zero director
+                continue
             
             # Save cell as image (keeping your existing code)
             temp_dir = tempfile.gettempdir()
@@ -725,8 +730,8 @@ def calculateQTensor(cells, kernelSize, threshold, batch_size=1000):
             director = eigenvectors[:, np.argmax(eigenvalues)]
 
             #ridding of artificial ordering of blank cells, don't expect higher than ~0.8
-            if S >= 0.8:
-                S=0
+            #if S >= 0.8:
+            #    S=0
 
             rowInfo.append([S, director])
         
