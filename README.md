@@ -3,7 +3,7 @@
 Code developed during an 8 week summer project in the Melaugh Lab at The Univeristy Of Edinburgh in collaboration with the charity Project Seagrass. 
 We are interested in the behaviour of the protist Labyrinthula, and this code combines analysis tools created by Joseph Knight with some imaging tools that I have created.
 
-**# masterClass**
+# **masterClass**
 
 A streamlined OOP instance of an ordering correlation analysis tool created by Joseph Knight. Allows for easy application of the functions to data.
 
