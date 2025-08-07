@@ -45,6 +45,46 @@ A streamlined OOP instance of an ordering correlation analysis tool created by J
 
 # imageProcessingTool
 
-Combines image stitching tools, with ordering tools from masterClass. The stitched image can be split into user defined sections (number of cells in x and y), and further analysis is user interactive, allowing for flexibility in what you want to analyse. 
-You can create density heatmaps, as well as nematic ordering heatmaps. For the nematic ordering heatmap, the director can also be plotted on the cells. If the user clicks on a cell, it runs the masterClass orientation correlation analysis on that given cell and displays it.
-There is also the option to draw a vector between two points, and the code will create the ordering correlation graph for each cell which this vector intersects with.
+Can pass an image into this code, in order to create density heatmaps (if the images have been segmented in Weka), or a nematic ordering heatmap, which is calculated from the Q Tensor. The code will produce the heatmap, where it will calculate one of the aforementioned features for every image cell which you can set. For example, if you decide you want to split the image into 36 grids, you could split the x and y axis into 6. For each of the 36 grids on the image, the code will calculate the features. If you wish, the code also has the ability to calculate the correlation function for each of the grids. Simply click on the grid with you cursor, and after a few seconds the orientation correlation function will be plotted (calculated from masterClass), along with the image of the cell you hvae clicked on.
+
+  ## splitIntoCells
+
+  Splits the image into smaller images (image cells), such that you can control the 'coarseness' of which you wish to calcualte the nematic ordering and density for. 
+
+  ## calculateDensity
+
+  Calculates the density of each image cell. Works very well if the image you have passed in to the code has been segmented in Weka. This function also has the ability to calculate density from the binary image which is calculated in masterClass. This is a very crude calculation of density, and it not recommended to be used at this current stage.
+
+  ## drawCellBoundariesNumpy
+
+  Once the iamge has been split into the user defined number of image cells, this function will draw the boundaries on the image, such that when the image is displayed, you can see where each image cell lays. 
+
+  ## create_density_heatmap
+
+  Creates a static (non-interactable) density heatmap. Will output the image you have passed in, with the grid lines overlayed to show where the image cells are. Each of these image cells will have a colour overlay with an alpha value (such that is it see through) corresponding to how dense that particular image cell is. A colourbar will be outputted to the right. 
+
+  ## create_interactive_heatmap
+
+  Same output as create_density_heatmap, except when you click on one of the image cells, it will then calculate the ordering correlation function using code from masterClass. The graph will be outputted in a new window, along with the image which was in the image cell you clicked on.
+
+  ## create_interactive_vector_analysis
+
+  Same output as create_density_heatmap, except line vectors can now be drawn for analysis. Once the density heatmap has been outputted, you can click on the first cell you are interested in, and then a second click for the final cell you are interested in. The code will then drawa a line vector between the two click locations, and calculate which cells this line intersects. For each intersected cell, the ordering correlation function will be calculated. All of these graphs will then be outputted. These are not currenlty inputted in order of increasing distance from the inital click, but this feature will be implemented. However, the distance from the initial click is in the title of the plot.
+
+  ## calculateQTensor
+
+  calculates the Q Tensor from the angles which are calculated when running the masterClass code. Once calcualted, it extracts the ordering paramter (S) and the director.
+
+  ##create_nematicOrderingTensor_heatmap_interactive
+
+  Creates a heatmap of nematic ordering. Very similar to the density heatmap, but the differences will be explained now. For each image cell, the nematic ordering is calculated. Instead of a colour overlay to represent S (0 = no ordering, 1 = perfectly ordered), the director (which points in direction of ordering) is plotted at the centre of the image cell, and is scaled to S. Therefore if a small arrow is plotted it means there is little ordering, and vice versa. Therefore, there is no colour bar with this plot. If you click on an image cell, it will calculate the ordering correlation function (from masterClass code) of that particular area. Graph along with the image in that image cell will be outputted in a new window. 
+
+  ## generateNematic
+
+  Has the ability to produce synthetic data. Can produce rods in random directions, in direcctions which change smoothly and slowly with direction, and also domains where the rods are perfectly aligned. This is a very useful function for producing pseudoimages to pass into the pipeline and check how things are working. 
+  
+
+
+
+
+  
