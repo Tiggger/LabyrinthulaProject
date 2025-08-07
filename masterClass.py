@@ -13,28 +13,33 @@ import Functions.Dilation as dl
 import Functions.Pipeline as pipe
 
 import sys
-#print('\n', sys.path, 'path')
 
 class ImageAnalysis():
     #sorting variables, and formatting image
-    #expecting magnification to be entered in as string '20x' etc, but perhaps number is better
-    def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold):
+    def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold=128):
+        """
+        imagePath: path to image you want to analyse
+        skeletonImagePath: path to skeletonised version of same image. Can be passed as None and code will make skeleton image for you
+        radius: radius of end point highlight in pixels
+        sl: size of gaussian kernel of identifying angles in the image
+        threshold: threshold to binarise image. Safety check as image passed in should have been thresholded already. Default is 128
+        """
+
         self.imagePath = imagePath
         self.skeletonImagePath = skeletonImagePath
         self.radius = radius #for end points of cells (network)
-        self.sl = sl
+        self.sl = sl 
         self.threshold=threshold
     
         #formatting image, and converting to greyscale
         self.img = Image.open(self.imagePath).convert("L")
 
-        #print(np.array(self.img), 'nparr img')
-
         #check if skeleton image has been entered
         if skeletonImagePath!=None:
             self.skeletonImage = Image.open(self.skeletonImagePath).convert("L")
-        #creating skeletonised image within pipeline
+        #creating skeletonised image if one hasn't been passed
         elif skeletonImagePath==None:
+            #check if image is greyscale or not
             if len(np.array(self.img).shape) == 3:
                 img_gray = rgb2gray(np.array(self.img))
             else:
@@ -43,34 +48,35 @@ class ImageAnalysis():
             #normalising
             img_gray = img_gray / 255.0 if img_gray.max() > 1 else img_gray
 
+            #different threshold, purely used for when making skeletonised image
             threshold = 0.7 #0.5 fairly arbitrary
             binary = np.array(img_gray) > threshold
 
+            #setting skeleton image to be used everwhere
             self.skeletonImage = skeletonize(binary)
         
         #creating binary image
-        self.binary_Image = np.array(self.img) > self.threshold #128 included for thresholding
+        self.binary_Image = np.array(self.img) > self.threshold 
 
         #processes the PNG skeleton - moved from processSkeleton so that can be accessed at all times
         self.processed_png, self.highlighted_png, self.endpoints_png = skel.process_skeleton(self.binary_Image.astype(int), A=10)
 
-        #calculating the angle and ordering parameter - moved from getOrientation to be accessed at all times
-        #self.phi, self.nop = fn.OrientationFilter(np.array(self.processed_png), self.sl)
-        #changed this line to calculate the angles from the skeletonised image - ANGLES COMING FROM SKELETON
+        #calculating the angle and ordering parameter from the skeletonised image
         self.phi, self.nop = fn.OrientationFilter(np.array(self.skeletonImage), self.sl)
 
-        #checking angles - moved from getOrientation so can be accessed at all times
+        #checking angles
         self.phi_rotated = fn.rotate_and_wrap_angles(self.phi,theta = np.pi/2)
         self.phi_new = fn.update_angles(self.phi,epsilon = 0.1,theta = np.pi/2)
 
-        #normalising corrected angles - moved from getOrientation so can be accessed at all times
+        #normalising corrected angles 
         self.norm_phi = fn.NormaliseAngle(self.phi_rotated)
 
-        #precompute
+        #precompute colour angle map
         self.rgb = fn.ColourMap(self.norm_phi)
-        #putting rgb from skeleton angles onto the nonskeletonised image - what we want
+        #putting rgb colour map from skeleton angles onto the nonskeletonised image
         self.masked = fn.ApplyMask(self.rgb, np.array(self.img), rgb_id = True)
 
+        #creat colour wheel
         self.colour_wheel, self.colour_wheel_transparent = fn.ColourWheel()
 
     #function which processes and plots the skeleton images
@@ -101,16 +107,8 @@ class ImageAnalysis():
         plt.tight_layout()
         plt.show()
 
-    #function to process a png image and produce colour diagram of angles and display
-    def getOrientation(self, filename):
-
-        #both items placed in np.array for processing
-        #sl is the size of the gaussian kernal
-
-        #creating colourmap
-        #colour_wheel, colour_wheel_transparent = fn.ColourWheel()
-        
-        
+    #function to show different processed images through the pipeline 
+    def getOrientationImages(self, filename):
 
         # Plot the results for the PNG image
         fig, axes = plt.subplots(1, 5, figsize=(20, 5))
@@ -130,24 +128,6 @@ class ImageAnalysis():
         axes[4].imshow(self.colour_wheel, extent=[-1, 1, -1, 1])
         axes[4].axis('off')
 
-        """
-        #square plotting for better presentation
-        fig, axes = plt.subplots(2, 2, figsize=(10, 10))  # 2x2 grid
-
-        axes[0, 0].imshow(np.array(self.processed_png))
-        axes[0, 0].set_title("Processed Image")
-
-        axes[0, 1].imshow(rgb)
-        axes[0, 1].set_title("Orientation Map")
-
-        axes[1, 0].imshow(masked)
-        axes[1, 0].set_title("Masked Orientation")
-
-        axes[1, 1].imshow(colour_wheel, extent=[-1, 1, -1, 1])
-        axes[1, 1].axis('off')
-
-        """
-
         # Add angle labels around the wheel
         angles = np.linspace(-np.pi, np.pi, 8, endpoint=False)
         for angle_index in angles:
@@ -156,78 +136,61 @@ class ImageAnalysis():
             angle_degrees = np.degrees(angle_index)
             plt.text(x_text, y_text, f"{int(angle_degrees)}°", ha='center', va='center')
 
+        #save figure
         skel.SaveFigure(self.masked,filename, rgb=True)
 
         #show plots
         plt.show()
 
     #Function which will calculate the correlation of the orientations, makes use of a skeletonised image which can be processed in python or passed into the function
-    #print statements have been commented out but left in for the sake of debugging
     def calcualteOrientationCorrelation(self, coarsening=0):
-        """
-        Compute the orientation correlation function for a nematic image.
-    
-        Parameters:
-        img (numpy.ndarray): Binary mask image (1 for valid regions, 0 elsewhere).
-        phi (numpy.ndarray): Orientation angle map (same shape as img).
-        coarsening (int): Coarsening level (0 for all points, 1 for every other, etc.).
-    
-        Returns:
-        distance_list (list): List of computed distances.
-        correlation_list (list): List of corresponding dot product moduli.
-        """
-
-        #check for if skeletonised image has been passed
-        if self.skeletonImagePath == None:
-            skeletonImage=skeletonize(np.array(self.binary_Image))
-            yx_indices = np.argwhere(np.array(skeletonImage) > 0)
-            #print(len(yx_indices), 'len yx_indices skeletonCreated')
-        else:
-            # Get indices of masked pixels
-            yx_indices = np.argwhere(np.array(self.skeletonImage) > 0)
-            #print(len(yx_indices), 'len yx_indices skeletonpassed')
         
-        # Apply coarsening only to the `i` loop: Select every (coarsening + 1)th point
+        #get number of indicies to go over from skeleton image
+        yx_indices = np.argwhere(np.array(self.skeletonImage) > 0)
+        
+        #Apply coarsening only to the `i` loop: Select every (coarsening + 1)th point
         if coarsening > 0:
             yx_indices = yx_indices[::(coarsening + 1)]
         
         num_points = len(yx_indices)
-        #print(num_points, 'num_points')
+
         
         #error checking
         if num_points < 2:
             raise ValueError("Not enough masked points to compute correlation.")
         
-        # Compute pairwise distances and orientation correlations
+        #Compute pairwise distances and orientation correlations
         self.distance_list = []
         self.correlation_list = []
         
-        for i in range(num_points):  # Reduced number of `i` due to coarsening
-            #print(i)
+        for i in range(num_points):  #Reduced number of `i` due to coarsening
+            #get pos
             y1, x1 = yx_indices[i]
+            
+            #get angle
             angle1 = self.phi_rotated[y1, x1]
+            #angle into vector
+            v1 = np.array([np.cos(angle1), np.sin(angle1)])  
             
-            v1 = np.array([np.cos(angle1), np.sin(angle1)])  # Nematic symmetry
-            
-            for y2, x2 in np.argwhere(np.array(self.processed_png) > 0):  # Loop over all masked pixels
+
+            for y2, x2 in np.argwhere(np.array(self.processed_png) > 0):  #Loop over all masked pixels
                 if (y1, x1) == (y2, x2):
                     self.distance_list.append(0)
                     self.correlation_list.append(1)
                 
+                #get angle and put into vector
                 angle2 = self.phi_rotated[y2, x2]
                 v2 = np.array([np.cos(angle2), np.sin(angle2)])
 
-                # Compute modulus of dot product
+                #Compute modulus of dot product
                 dot_product = np.abs(np.dot(v1, v2))
 
-                # Compute Euclidean distance
+                #Compute Euclidean distance
                 distance = np.linalg.norm([y2 - y1, x2 - x1])
 
+                #save information
                 self.distance_list.append(distance)
                 self.correlation_list.append(dot_product**2)
-
-        #showing skeleton image, good for debugging and understanding the code better
-        #plt.imshow(skeletonImage, cmap='hot')
 
         return self.distance_list, self.correlation_list
     
@@ -258,6 +221,7 @@ class ImageAnalysis():
         
         bin_values = [[] for _ in range(len(bin_centers))]
         
+        #going through list and getting information
         for d, c in zip(self.distance_list, self.correlation_list):
             bin_index = int(d // bin_size)
             if bin_index < len(correlation_avg):
@@ -265,13 +229,13 @@ class ImageAnalysis():
                 correlation_avg[bin_index] += c
                 counts[bin_index] += 1
         
-        # Compute the averages and standard deviations
+        #Compute the averages and standard deviations
         for i in range(len(bin_centers)):
             if counts[i] > 0:
                 correlation_avg[i] /= counts[i]
                 std_dev[i] = np.std(bin_values[i]) if len(bin_values[i]) > 1 else 0
         
-        # Compute standard error of the mean (SEM)
+        #Compute standard error of the mean (SEM)
         std_err = np.zeros(len(bin_centers))
         std_err[counts > 0] = std_dev[counts > 0] / np.sqrt(counts[counts > 0])
         
@@ -280,7 +244,7 @@ class ImageAnalysis():
         
         return bin_centers, correlation_avg, counts, std_err
 
-    #Used for plotting, should pass in correlation_avg which comes from function above, unsure of the form of the calculation
+    #Used for plotting, should pass in correlation_avg which comes from function above
     def calculateCorrelationAvgNematic(self, correlationAvg):
         return (correlationAvg - 0.5)/(1-0.5)
     
@@ -295,11 +259,10 @@ class ImageAnalysis():
         elif magnification == 4:
             pixelSize = 1.6169
 
-
-
         #convert from pixels to microns for plotting
         bin_centers = bin_centers*pixelSize
 
+        #plot
         plt.errorbar(bin_centers, correlation_avg_nematic, yerr=std_err, label='Orientation Correlation') #removed s=point_size, it doesnt like it
 
         #setting properties of graph
@@ -348,27 +311,3 @@ class ImageAnalysis():
         plt.title('Title 2')
 
         plt.show()
-
-
-
-"""
-#code can handle if you enter a skeletonised image, or if you don't then it will produce one to use
-
-a=ImageAnalysis('/Users/johnwhitfield/Desktop/projectSeagrass/Lab/Microscopy/agarComparison/0.5_10x_Ph1_Images/2025-07-08_Ph1_10x_edgesAndInsides_MMStack_Default.ome0004.jpg', None, 4, 4)
-print(a.img)
-#a.getOrientation('bananas')
-a.produceCorrelationGraphData(10000, '0.5% Agar')
-#a.produceBinCenterGraphs(10000)
-
-
-
-
-#b=ImageAnalysis('/Users/johnwhitfield/Desktop/projectSeagrass/code/copyOfJoesCode/Demo/20xBF_1.7.png', None, 4, 4)
-#b.getOrientation('bananas')
-#b.produceCorrelationGraph(10000, 'testingNewSkeleton')
-
-#d = ImageAnalysis('/Users/johnwhitfield/Desktop/projectSeagrass/code/copyOfJoesCode/Demo/20xBF_1.7.png', '/Users/johnwhitfield/Desktop/projectSeagrass/code/copyOfJoesCode/Demo/20xBF_1.7_Skel.png', 4, 4)
-#d.produceCorrelationGraph(10000, 'testingPassingSkeleton')
-#d.produceBinCenterGraphs(10000)
-
-"""
