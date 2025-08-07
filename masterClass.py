@@ -292,7 +292,7 @@ class ImageAnalysis():
         return bin_centers, correlation_avg
     
     #produces curves
-    def produceBinCenterGraphs(self, coarsening, bin_size=2):
+    def produceBinCentreGraphs(self, coarsening, bin_size=2):
         #Calculations
         distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening)
 
