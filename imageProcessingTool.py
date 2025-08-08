@@ -674,7 +674,7 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
                     dx, dy,
                     head_width=S*0.3*(cell_width/2), #scaled by cell width 
                     head_length=S*0.4*(cell_height/2), #scaled by cell height
-                    fc='white', ec='white',
+                    fc='red', ec='red',
                     linewidth=1.5,
                     length_includes_head=True
                 )

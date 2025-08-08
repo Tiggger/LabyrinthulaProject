@@ -121,52 +121,72 @@ def compute_orientation_map(image, shift_distance=1, window_radius=5, num_angles
     
     return orientation_map, S_map
 
+#orientation map cell ordering
 
-# Main workflow
-"""
-image_path = "/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg"
-image = io.imread(image_path)
-if len(image.shape) == 3:
-    image = rgb2gray(image)
-image = img_as_float(image)
+def compute_cell_directors_from_map(orientation_map, S_map, xsplit, ysplit):
+    """Calculate average S and director for each cell from orientation map"""
+    h, w = orientation_map.shape
+    cell_height = h // ysplit
+    cell_width = w // xsplit
+    
+    S_grid = np.zeros((ysplit, xsplit))
+    directors_grid = np.zeros((ysplit, xsplit))
+    
+    for y in range(ysplit):
+        for x in range(xsplit):
+            y_start = y * cell_height
+            y_end = (y+1)*cell_height if y != ysplit-1 else h
+            x_start = x * cell_width
+            x_end = (x+1)*cell_width if x != xsplit-1 else w
+            
+            # Extract cell region
+            cell_orient = orientation_map[y_start:y_end, x_start:x_end]
+            cell_S = S_map[y_start:y_end, x_start:x_end]
+            
+            # Convert orientations to Q-tensor components
+            cos2 = np.cos(2*cell_orient) * cell_S
+            sin2 = np.sin(2*cell_orient) * cell_S
+            
+            # Average over cell
+            Q_xx = np.mean(cos2)
+            Q_xy = np.mean(sin2)
+            
+            # Compute S and director
+            S_grid[y,x] = np.sqrt(Q_xx**2 + Q_xy**2)
+            directors_grid[y,x] = 0.5 * np.arctan2(Q_xy, Q_xx)
+    
+    return S_grid, directors_grid
 
-# Split into cells (e.g., 7x7 grid)
-xsplit, ysplit = 7, 7
-cells = splitIntoCells(image, xsplit, ysplit)
-
-# Compute S and directors for each cell
-S_grid = np.zeros((ysplit, xsplit))
-directors_grid = np.zeros((ysplit, xsplit))
-for y in range(ysplit):
-    for x in range(xsplit):
-        S_grid[y, x], directors_grid[y, x] = compute_cell_director(cells[y][x])
-
-# Visualization
-fig, ax = plt.subplots(figsize=(10, 10))
-ax.imshow(image, cmap='gray')
-
-# Draw cell boundaries
-image_with_grid = drawCellBoundaries(image, xsplit, ysplit, lineValue=np.max(image))
-ax.imshow(image_with_grid, cmap='gray', alpha=0.3)
-
-# Plot directors (scaled by S)
-cell_height = image.shape[0] // ysplit
-cell_width = image.shape[1] // xsplit
-scale = 0.5 * min(cell_height, cell_width)  # Scale factor for arrow lengths
-
-for y in range(ysplit):
-    for x in range(xsplit):
-        S = S_grid[y, x]
-        angle = directors_grid[y, x]
-        center_x = (x + 0.5) * cell_width
-        center_y = (y + 0.5) * cell_height
-        dx = scale * S * np.cos(angle)
-        dy = scale * S * np.sin(angle)
-        
-        ax.arrow(center_x - dx/2, center_y - dy/2, dx, dy, 
-                 head_width=scale*0.2, head_length=scale*0.3, 
-                 fc='red', ec='red', width=scale*0.05)
-
-plt.title("Nematic Directors Scaled by S (Cell-wise)")
-plt.show()
-"""
+def plot_cell_directors(image, S_grid, directors_grid):
+    """Plot image with cell directors scaled by S"""
+    fig, ax = plt.subplots(figsize=(10,10))
+    ax.imshow(image, cmap='gray')
+    
+    ysplit, xsplit = S_grid.shape
+    cell_height = image.shape[0] // ysplit
+    cell_width = image.shape[1] // xsplit
+    
+    # Draw cell boundaries
+    for y in range(1, ysplit):
+        ax.axhline(y*cell_height, color='white', alpha=0.5, linestyle='--')
+    for x in range(1, xsplit):
+        ax.axvline(x*cell_width, color='white', alpha=0.5, linestyle='--')
+    
+    # Plot directors
+    scale = 0.4 * min(cell_height, cell_width)
+    
+    for y in range(ysplit):
+        for x in range(xsplit):
+            if S_grid[y,x] > 0.1:  # Only plot significant order
+                angle = directors_grid[y,x]
+                center_x = (x + 0.5) * cell_width
+                center_y = (y + 0.5) * cell_height
+                dx = scale * S_grid[y,x] * np.cos(angle)
+                dy = scale * S_grid[y,x] * np.sin(angle)
+                
+                ax.arrow(center_x - dx/2, center_y - dy/2, dx, dy,
+                         head_width=scale*0.15, head_length=scale*0.2,
+                         fc='red', ec='red', width=scale*0.03)
+    
+    plt.title("Cell Directors Scaled by S")
+    plt.show()

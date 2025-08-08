@@ -12,7 +12,8 @@ import imageShiftOrdering as so
 from skimage.color import rgb2gray
 
 
-image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+#image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+image_dir='/Users/johnwhitfield/Desktop/proper/t:21:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 img = np.array(Image.open(image_dir))
 
@@ -20,7 +21,7 @@ if len(img.shape)==3:
     img=rgb2gray(img)
 
 # Split into cells (e.g., 2x2 grid)
-xsplit, ysplit = 10, 10
+xsplit, ysplit = 5, 5
 cells = so.splitIntoCells(img, xsplit, ysplit)
 
 # Compute S and directors for each cell
@@ -35,7 +36,7 @@ fig, ax = plt.subplots(figsize=(10, 10))
 ax.imshow(img, cmap='gray')
 
 # Draw cell boundaries
-image_with_grid = so.drawCellBoundaries(img, xsplit, ysplit, lineValue=np.max(img))
+image_with_grid = so.drawCellBoundaries(img, xsplit, ysplit, lineValue=np.max(img), thickness=5)#
 ax.imshow(image_with_grid, cmap='gray', alpha=0.3)
 
 # Plot directors (scaled by S)
