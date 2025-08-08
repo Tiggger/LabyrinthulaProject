@@ -723,6 +723,7 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
         #Get the clicked cell from the cell list
         clicked_cell = cells[cell_y][cell_x]
         ordering=orderingInfo[cell_y][cell_x][0] #could be orderingInfo...[1] instead
+        director=orderingInfo[cell_y][cell_x][1]
         
         #Create a temporary image file for the cell, need this due to how masterClass has been written, needs image path
         temp_path = "/tmp/clicked_cell.tif"
@@ -745,7 +746,7 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
         plt.subplot(1, 2, 1)
         #shows image in cell we have clicked on 
         plt.imshow(clicked_cell, cmap='gray')
-        plt.title(f"Cell ({cell_x}, {cell_y}), Ordering (S): {round(ordering, 3)}")
+        plt.title(f"Cell ({cell_x}, {cell_y}), Ordering (S): {round(ordering, 3)}, Director [{round(director[0], 3)}, {round(director[1], 3)}]")
         plt.axis('off')
         
         #Show the correlation graph
