@@ -289,7 +289,7 @@ class ImageAnalysis():
             self.plotOrientationCorrelation(bin_centers, correlationAvgNematic, std_err, point_size=2, xlim=[0,len(bin_centers)], ylim=[min(correlationAvgNematic), max(correlationAvgNematic)], title=title, magnification=magnification)
 
         #temporary
-        return bin_centers, correlation_avg
+        return bin_centers, correlation_avg, std_err, correlationAvgNematic
     
     #produces curves
     def produceBinCentreGraphs(self, coarsening, bin_size=2):

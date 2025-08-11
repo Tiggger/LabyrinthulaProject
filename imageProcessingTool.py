@@ -14,6 +14,7 @@ import math
 import io 
 from skimage.transform import resize
 import decimal
+from scipy.optimize import curve_fit
 
 #Joe code import
 import Functions.Orientation as fn
@@ -634,6 +635,11 @@ def calculateQTensor(cells, kernelSize, threshold=128, batch_size=1000, intensit
     
     return info
 
+#function for exponential fit 
+def exponential_decay(r, A, xi, C):
+    """Exponential decay function for fitting."""
+    return A * np.exp(-r / xi) + C
+
 #qtensor nematic ordering map, interactive calculation when click you get ordering correlation function
 def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize,  magnification, colourWheel, threshold=128, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
     #Create figure with two subplots (one for image, one for colourbar)
@@ -761,13 +767,61 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
         #Show the correlation graph
         plt.subplot(1, 2, 2)
         #shows the calculated correlation graph for the given cell
-        cell_analysis.produceCorrelationGraph(
+        bin_centers, correlation_avg, std_err, correlationAvgNematic = cell_analysis.produceCorrelationGraph(
             coarsening=coarsening,
             title=f"Orientation Correlation - Cell ({cell_x}, {cell_y})",
             magnification=magnification,
-            bin_size=2
+            bin_size=2, 
+            plotting=False
         )
+
+        #in units of microns
+        if magnification == 20:
+            pixelSize = 0.3236
+        elif magnification == 10:
+            pixelSize = 0.651
+        elif magnification == 4:
+            pixelSize = 1.6169
+
+        #convert from pixels to microns for plotting
+        bin_centers = bin_centers*pixelSize
+
+        #plotting manually
+        plt.errorbar(bin_centers, correlationAvgNematic, std_err, label='Orientation Correlation From Data')
+        plt.xlim(bin_centers[0], bin_centers[-1])
+        plt.xlabel('Distance ($\mu m$)')
+        plt.ylim(min(correlationAvgNematic), max(correlationAvgNematic))
+        plt.ylabel('Correlation')
+        plt.title('Correlation Function')
+
+        #fitting to this data
+        # Initial guesses for A, ξ (xi), and C (optional)
+        p0 = [1.0, 10.0, 0.0]  # Adjust based on your data scale
+
+        # Perform the fit
+        popt, pcov = curve_fit(
+            exponential_decay,
+            bin_centers,
+            correlationAvgNematic,
+            p0=p0,
+            sigma=std_err,  # Optional: weight by error bars
+            maxfev=5000     # Increase if fit fails
+        )
+
+        # Extract fitted parameters
+        A_fit, xi_fit, C_fit = popt
+        A_err, xi_err, C_err = np.sqrt(np.diag(pcov))  # Parameter uncertainties
         
+        # Generate fitted curve
+        r_fit = np.linspace(bin_centers[0], bin_centers[-1], 100)
+        fit_curve = exponential_decay(r_fit, A_fit, xi_fit, C_fit)
+        
+        # Plot the fit
+        plt.plot(r_fit, fit_curve, 'r--', 
+                label=f'Fit: $A e^{{-r/\\xi}} + C$\n$A={A_fit:.2f}$, $\\xi={xi_fit:.2f} \mu m$, $C={C_fit:.2f}$')
+        
+        plt.legend(loc='upper right', bbox_to_anchor=(1, 1))
+            
         #show off the plots
         plt.tight_layout()
         plt.show()

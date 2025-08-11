@@ -9,10 +9,11 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 #import image - download image from repo and change path as needed
-#image_dir='/Users/johnwhitfield/Desktop/LabyrinthulaProject/t:21:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+image_dir='/Users/johnwhitfield/Desktop/LabyrinthulaProject/t:21:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 #this one is much better
-image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+
+#image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 #setting dimensions of grid
 xsplit=5
