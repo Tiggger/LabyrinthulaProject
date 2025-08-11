@@ -583,11 +583,14 @@ def calculateQTensor(cells, kernelSize, threshold=128, batch_size=1000, intensit
             #getting relevant information - phi_new gives correct tensor
             angles = cell_analysis.phi_new
 
+            #flatten angles as the list is 2d, and we need 1d length
+            anglesFlattened=angles.flatten() 
+
             #Initialise accumulators for outer product components
             sum_xx = 0.0
             sum_xy = 0.0
             sum_yy = 0.0
-            total = len(angles)
+            total = len(anglesFlattened)
             
             #Process angles in batches to avoid memory overload - otherwise would have done numpy style
             for i in range(0, total, batch_size):
@@ -602,10 +605,16 @@ def calculateQTensor(cells, kernelSize, threshold=128, batch_size=1000, intensit
                 sum_xy += np.sum(cos_theta * sin_theta)
                 sum_yy += np.sum(sin_theta * sin_theta)
             
+            """
             #Compute averages
             avg_xx = np.mean(cos_theta**2)    #⟨cos²θ⟩
             avg_xy = np.mean(cos_theta * sin_theta)  #⟨cosθsinθ⟩
             avg_yy = np.mean(sin_theta**2)    #⟨sin²θ⟩
+            """
+
+            avg_xx = sum_xx / total
+            avg_xy = sum_xy / total
+            avg_yy = sum_yy / total
             
             
             #Construct Q tensor directly
