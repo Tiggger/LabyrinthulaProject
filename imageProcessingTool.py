@@ -789,7 +789,7 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
         #plotting manually
         plt.errorbar(bin_centers, correlationAvgNematic, std_err, label='Orientation Correlation From Data')
         plt.xlim(bin_centers[0], bin_centers[-1])
-        plt.xlabel('Distance ($\mu m$)')
+        plt.xlabel(r'Distance ($\mu m$)')
         plt.ylim(min(correlationAvgNematic), max(correlationAvgNematic))
         plt.ylabel('Correlation')
         plt.title('Correlation Function')
@@ -798,13 +798,13 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
         # Initial guesses for A, ξ (xi), and C (optional)
         p0 = [1.0, 10.0, 0.0]  # Adjust based on your data scale
 
-        # Perform the fit
+        #Perform the fit to 80% of data only (to exlude weird end behaviour)
         popt, pcov = curve_fit(
             exponential_decay,
-            bin_centers,
-            correlationAvgNematic,
+            bin_centers[:int(0.8*len(bin_centers))],
+            correlationAvgNematic[:int(0.8*len(correlationAvgNematic))],
             p0=p0,
-            sigma=std_err,  # Optional: weight by error bars
+            sigma=std_err[:int(0.8*len(std_err))],  # Optional: weight by error bars
             maxfev=5000     # Increase if fit fails
         )
 
@@ -818,7 +818,7 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
         
         # Plot the fit
         plt.plot(r_fit, fit_curve, 'r--', 
-                label=f'Fit: $A e^{{-r/\\xi}} + C$\n$A={A_fit:.2f}$, $\\xi={xi_fit:.2f} \mu m$, $C={C_fit:.2f}$')
+                label = rf'Fit: $A e^{{-r/\xi}} + C$ : $A={A_fit:.2f}$, $\xi={xi_fit:.2f} \mu m$, $C={C_fit:.2f}$')
         
         plt.legend(loc='upper right', bbox_to_anchor=(1, 1))
             

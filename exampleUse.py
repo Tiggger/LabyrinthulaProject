@@ -9,11 +9,16 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 #import image - download image from repo and change path as needed
-image_dir='/Users/johnwhitfield/Desktop/LabyrinthulaProject/t:21:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+#image_dir='/Users/johnwhitfield/Desktop/LabyrinthulaProject/t:21:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 #this one is much better
-
 #image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+
+#tile image
+#image_dir='/Users/johnwhitfield/Desktop/proper/tileImages/2025-07-25_20xwithExtender_singleCell_tileImages_1_MMStack_1-P...5_20xwithExtender_singleCell_tileImages_1_MMStack_1-Pos001_001-1.jpg'
+
+#ph1
+image_dir='/Users/johnwhitfield/Desktop/proper/ph1/t:15:24 - 2025-07-28_singleCellResolving_20xwithExtender_Ph1.jpg'
 
 #setting dimensions of grid
 xsplit=5
