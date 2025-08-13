@@ -32,7 +32,8 @@ from PIL import Image
 #image_dir='/Users/johnwhitfield/Desktop/12.08.25/20x/t:3:12 - 2025-08-12_20x_BF_featureImages_MMStack_Pos0.jpg'
 
 #improving preprocessing
-image_dir='/Users/johnwhitfield/Desktop/testing.jpg'
+#image_dir='/Users/johnwhitfield/Desktop/testing.jpg'
+image_dir='/Users/johnwhitfield/Desktop/reprocessing/20x/t:5:12 - 2025-08-12_20x_BF_featureImages_MMStack_Pos0.jpg'
 
 
 #setting dimensions of grid
