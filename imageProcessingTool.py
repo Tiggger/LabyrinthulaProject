@@ -583,9 +583,19 @@ def calculateQTensor(cells, kernelSize, threshold=128, batch_size=1000, intensit
             cell_analysis = mc.ImageAnalysis(temp_path, None, 4, kernelSize, threshold)
             #getting relevant information - phi_new gives correct tensor
             angles = cell_analysis.phi_new
+            binaryMask = cell_analysis.binary_Image
+
+            #get valid angles (applying mask to orientation field)
+            validAngles = angles[binaryMask]
+
+            #check if cell is empty
+            if len(validAngles) == 0:
+                rowInfo.append([0.0, np.array([0.0, 0.0])])
+                continue
 
             #flatten angles as the list is 2d, and we need 1d length
-            anglesFlattened=angles.flatten() 
+            #anglesFlattened=angles.flatten() 
+            anglesFlattened=validAngles.flatten()
 
             #Initialise accumulators for outer product components
             sum_xx = 0.0
@@ -595,7 +605,7 @@ def calculateQTensor(cells, kernelSize, threshold=128, batch_size=1000, intensit
             
             #Process angles in batches to avoid memory overload - otherwise would have done numpy style
             for i in range(0, total, batch_size):
-                batch_angles = angles[i:i+batch_size]
+                batch_angles = validAngles[i:i+batch_size] #changed to valid angles, as was previously looping through just angles
                 
                 #Calculate cos and sin for the batch
                 cos_theta = np.cos(batch_angles)
@@ -641,7 +651,7 @@ def exponential_decay(r, A, xi, C):
     return A * np.exp(-r / xi) + C
 
 #qtensor nematic ordering map, interactive calculation when click you get ordering correlation function
-def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize,  magnification, colourWheel, threshold=128, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
+def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize,  magnification, microscope, colourWheel, threshold=128, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
     #Create figure with two subplots (one for image, one for colourbar)
     fig, (ax, axWheel) = plt.subplots(1, 2, figsize=(12, 8), gridspec_kw={'width_ratios': [3, 1]})
 
@@ -771,6 +781,7 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
             coarsening=coarsening,
             title=f"Orientation Correlation - Cell ({cell_x}, {cell_y})",
             magnification=magnification,
+            microscope=microscope,
             bin_size=2, 
             plotting=False
         )
