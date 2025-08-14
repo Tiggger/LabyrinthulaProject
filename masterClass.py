@@ -275,7 +275,7 @@ class ImageAnalysis():
         return (correlationAvg - 0.5)/(1-0.5)
     
     #plotting orientation correlation graph
-    def plotOrientationCorrelation(self, bin_centers, correlation_avg_nematic, std_err, point_size, xlim, ylim, title, magnification, microscope):
+    def plotOrientationCorrelation(self, bin_centers, correlation_avg_nematic, std_err, point_size, xlim, ylim, title, pixelSize):
         """
         Plots orientation correlation graph
         bin_centers: numpy list of the centers of each bin to plot on x axis
@@ -284,24 +284,9 @@ class ImageAnalysis():
         point_size: integer, how big you want the plot points to be 
         xlim: integer, what you want upper bound of x axis to be
         ylim: integer, what you want upper bound of y axis to be
-        magnification: integer, value of magnification of the image you are passing in
-        microscope: string, either 'Nikon 1' or 'Nikon 3' depending on which microscope you used in JCMB 2611
+        pixelSize: float, distance 1 pixel of the image represents
         """
-
-        if microscope=='Nikon 3':
-            #in units of microns
-            if magnification == 20:
-                pixelSize = 0.3236
-            elif magnification == 10:
-                pixelSize = 0.651
-            elif magnification == 4:
-                pixelSize = 1.6169
-        elif microscope=='Nikon 1':
-            if magnification == 20:
-                pixelSize=0.55
-            elif magnification == 40:
-                pixelSize=0.275
-
+        
         #convert from pixels to microns for plotting
         bin_centers = bin_centers*pixelSize
 
@@ -319,14 +304,13 @@ class ImageAnalysis():
         plt.show()
 
     #does all, and produces a graph, currently the axes limits are set to length of the lists, but could be changed if need be
-    def produceCorrelationGraph(self, coarsening, title, magnification, microscope, bin_size=2, plotting=True):
+    def produceCorrelationGraph(self, coarsening, title, pixelSize, bin_size=2, plotting=True):
         """
         Does all necessary calculations to produce the correlation graph plot
 
         coarsening: integer, how much you wish to coarsen the calculation of orientation (speeds up computation)
         title: string, title of graph
-        magnification: integer, magnification of image you are working with
-        microscope: string, 'Nikon 1' or 'Nikon 3', depending on which microscope you used in JCMB 2611
+        pixelSize: float, distance that 1 pixel represents
         bin_size: integer, size of bins you are plotting with
         plotting: boolean, whether you wish to plot or just return the values to plot yourself elsehwere
 
@@ -347,7 +331,7 @@ class ImageAnalysis():
 
         #Plotting
         if plotting==True:
-            self.plotOrientationCorrelation(bin_centers, correlationAvgNematic, std_err, point_size=2, xlim=[0,len(bin_centers)], ylim=[min(correlationAvgNematic), max(correlationAvgNematic)], title=title, magnification=magnification, microscope=microscope)
+            self.plotOrientationCorrelation(bin_centers, correlationAvgNematic, std_err, point_size=2, xlim=[0,len(bin_centers)], ylim=[min(correlationAvgNematic), max(correlationAvgNematic)], title=title, pixelSize=pixelSize)
 
         #temporary
         return bin_centers, correlation_avg, std_err, correlationAvgNematic

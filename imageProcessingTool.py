@@ -193,7 +193,7 @@ def create_density_heatmap(image, cells, densities, cmap='viridis', alpha=0.5):
 
 
 #plots a density heatmap, but when you click on a cell, will calculate ordering correlation function using Joe's code
-def create_interactive_heatmap(image, cells, densities, kernelSize, magnification, threshold=128, cmap='viridis', alpha=0.5):
+def create_interactive_heatmap(image, cells, densities, kernelSize, pixelSize, threshold=128, cmap='viridis', alpha=0.5):
     #create figure
     fig, ax = plt.subplots(figsize=(12, 8))
     
@@ -294,7 +294,7 @@ def create_interactive_heatmap(image, cells, densities, kernelSize, magnificatio
             #changed from 10000 to 1000
             coarsening=1000,
             title=f"Orientation Correlation - Cell ({cell_x}, {cell_y})",
-            magnification=magnification,
+            pixelSize=pixelSize,
             bin_size=2
         )
         
@@ -651,7 +651,7 @@ def exponential_decay(r, A, xi, C):
     return A * np.exp(-r / xi) + C
 
 #qtensor nematic ordering map, interactive calculation when click you get ordering correlation function
-def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize,  magnification, microscope, colourWheel, threshold=128, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis'):
+def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize,  pixelSize, colourWheel, threshold=128, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis'):
     #Create figure with two subplots (one for image, one for colourbar)
     fig, (ax, axWheel) = plt.subplots(1, 2, figsize=(12, 8), gridspec_kw={'width_ratios': [3, 1]})
 
@@ -780,19 +780,10 @@ def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo,
         bin_centers, correlation_avg, std_err, correlationAvgNematic = cell_analysis.produceCorrelationGraph(
             coarsening=coarsening,
             title=f"Orientation Correlation - Cell ({cell_x}, {cell_y})",
-            magnification=magnification,
-            microscope=microscope,
+            pixelSize=pixelSize,
             bin_size=2, 
             plotting=False
         )
-
-        #in units of microns
-        if magnification == 20:
-            pixelSize = 0.3236
-        elif magnification == 10:
-            pixelSize = 0.651
-        elif magnification == 4:
-            pixelSize = 1.6169
 
         #convert from pixels to microns for plotting
         bin_centers = bin_centers*pixelSize
