@@ -18,6 +18,8 @@ class ImageAnalysis():
     #sorting variables, and formatting image
     def __init__(self, imagePath, skeletonImagePath, radius, sl, threshold=128):
         """
+        Initialises object with necessary values and calculations
+
         imagePath: path to image you want to analyse
         skeletonImagePath: path to skeletonised version of same image. Can be passed as None and code will make skeleton image for you
         radius: radius of end point highlight in pixels
@@ -81,6 +83,10 @@ class ImageAnalysis():
 
     #function which processes and plots the skeleton images
     def processSkeleton(self):
+        """
+        Function used for processing the skeletonised images for sparse network analysis. 
+        Plots all of the processed images
+        """
 
         #radially dilates enpoints from PNG image
         self.dilated_endpoints = dl.dilate_endpoints_isotropic(self.endpoints_png, self.radius)
@@ -109,6 +115,10 @@ class ImageAnalysis():
 
     #function to show different processed images through the pipeline 
     def getOrientationImages(self, filename):
+        """
+        Function that shows the different images that are essential for calculations in the pipeline.
+        filename: string, used as the name of the masked image to be saved in the same folder as this file.
+        """
 
         # Plot the results for the PNG image
         fig, axes = plt.subplots(1, 5, figsize=(20, 5))
@@ -144,6 +154,15 @@ class ImageAnalysis():
 
     #Function which will calculate the correlation of the orientations, makes use of a skeletonised image which can be processed in python or passed into the function
     def calcualteOrientationCorrelation(self, coarsening=0):
+        """
+        Calculates the correlation between orientations as calculated when object is initiated. 
+        coarsening: integer, controls how coarse grained you want to the calculation to be
+
+        returns:
+        distance_list: numpy list of distances for which correlation has been calculated for
+        correlation_list: numpy list of correlations which have been calculated for each distance 
+        
+        """
         
         #get number of indicies to go over from skeleton image
         yx_indices = np.argwhere(np.array(self.skeletonImage) > 0)
@@ -246,11 +265,29 @@ class ImageAnalysis():
 
     #Used for plotting, should pass in correlation_avg which comes from function above
     def calculateCorrelationAvgNematic(self, correlationAvg):
+        """
+        Calculates the average correlation nematic value from the list of correlation averages
+        correlationAvg: numpy list of correlations as calculated in binIt
+
+        returns:
+        Average corrlation list
+        """
         return (correlationAvg - 0.5)/(1-0.5)
     
     #plotting orientation correlation graph
     def plotOrientationCorrelation(self, bin_centers, correlation_avg_nematic, std_err, point_size, xlim, ylim, title, magnification, microscope):
-        
+        """
+        Plots orientation correlation graph
+        bin_centers: numpy list of the centers of each bin to plot on x axis
+        correlation_avg_nematic: numpy list of correlations to plot at each bin centre
+        std_err: numpy list of error at each data point
+        point_size: integer, how big you want the plot points to be 
+        xlim: integer, what you want upper bound of x axis to be
+        ylim: integer, what you want upper bound of y axis to be
+        magnification: integer, value of magnification of the image you are passing in
+        microscope: string, either 'Nikon 1' or 'Nikon 3' depending on which microscope you used in JCMB 2611
+        """
+
         if microscope=='Nikon 3':
             #in units of microns
             if magnification == 20:
@@ -283,6 +320,24 @@ class ImageAnalysis():
 
     #does all, and produces a graph, currently the axes limits are set to length of the lists, but could be changed if need be
     def produceCorrelationGraph(self, coarsening, title, magnification, microscope, bin_size=2, plotting=True):
+        """
+        Does all necessary calculations to produce the correlation graph plot
+
+        coarsening: integer, how much you wish to coarsen the calculation of orientation (speeds up computation)
+        title: string, title of graph
+        magnification: integer, magnification of image you are working with
+        microscope: string, 'Nikon 1' or 'Nikon 3', depending on which microscope you used in JCMB 2611
+        bin_size: integer, size of bins you are plotting with
+        plotting: boolean, whether you wish to plot or just return the values to plot yourself elsehwere
+
+        returns:
+        bin_centers: numpy list, centre of bins to be plotted
+        correlation_avg: numpy list, correlation values 
+        std_err: numpy list, errors of each data point
+        correlationAvgNematic: numpy list, average of correlation values for each bin
+
+        """
+
         #Calculations
         distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening) #is this line needed, I think it has already been calculated and can be omitted
 
@@ -299,6 +354,13 @@ class ImageAnalysis():
     
     #produces curves
     def produceBinCentreGraphs(self, coarsening, bin_size=2):
+        """
+        Function to calulate correlation data, plot along with a count of objects in each bin
+
+        coarsening: integer, how much you wish to coarsen the calculation by
+        bin_size: integer, what you wish the width of the bins to be
+        
+        """
         #Calculations
         distance_list, correlation_list = self.calcualteOrientationCorrelation(coarsening=coarsening)
 
@@ -307,7 +369,7 @@ class ImageAnalysis():
         #Plotting
         plt.figure(figsize=(10, 5))
 
-        # Original skeleton
+        
         plt.subplot(1, 2, 1)
         plt.scatter(bin_centers,correlation_avg)
         plt.title('Title 1')

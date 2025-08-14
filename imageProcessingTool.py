@@ -651,7 +651,7 @@ def exponential_decay(r, A, xi, C):
     return A * np.exp(-r / xi) + C
 
 #qtensor nematic ordering map, interactive calculation when click you get ordering correlation function
-def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize,  magnification, microscope, colourWheel, threshold=128, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis', alpha=0.5):
+def create_nematicOrderingTensor_heatmap_interactive(image, cells, orderingInfo, kernelSize,  magnification, microscope, colourWheel, threshold=128, coarsening=10000, masked_image=None, arrow_scale=0.3, arrows=True, cmap='viridis'):
     #Create figure with two subplots (one for image, one for colourbar)
     fig, (ax, axWheel) = plt.subplots(1, 2, figsize=(12, 8), gridspec_kw={'width_ratios': [3, 1]})
 

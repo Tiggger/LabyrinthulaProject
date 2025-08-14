@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 #import image - download image from repo and change path as needed
-#image_dir='/Users/johnwhitfield/Desktop/LabyrinthulaProject/t:21:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+image_dir='/Users/johnwhitfield/Desktop/t_21_21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 #this one is much better
 #image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
@@ -33,7 +33,7 @@ from PIL import Image
 
 #improving preprocessing
 #image_dir='/Users/johnwhitfield/Desktop/testing.jpg'
-image_dir='/Users/johnwhitfield/Desktop/reprocessing/20x/t:5:12 - 2025-08-12_20x_BF_featureImages_MMStack_Pos0.jpg'
+#image_dir='/Users/johnwhitfield/Desktop/reprocessing/20x/t:5:12 - 2025-08-12_20x_BF_featureImages_MMStack_Pos0.jpg'
 
 
 #setting dimensions of grid
@@ -57,7 +57,7 @@ cells = dc.splitIntoCells(img, xsplit, ysplit)
 a=mc.ImageAnalysis(image_dir, None, 4, kernelSize)
 
 #showing the image we pass in and the skeletonised image that has been created in the pipeline
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(8, 4), sharex=True, sharey=True)
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(8, 4), sharex=True, sharey=True)
 
 ax = axes.ravel()
 
@@ -69,6 +69,7 @@ ax[1].imshow(a.skeletonImage, cmap=plt.cm.gray)
 ax[1].axis('off')
 ax[1].set_title('Skeleton', fontsize=20)
 
+"""
 ax[2].imshow(a.rgb)
 ax[2].axis('off')
 ax[2].set_title('Orientation Field', fontsize=20)
@@ -82,6 +83,7 @@ ax[3].set_title('All Angles', fontsize=20)
 ax[4].imshow(np.where(a.binary_Image, a.phi, np.nan), cmap='hsv')
 ax[4].axis('off')
 ax[4].set_title('Masked Angles', fontsize=20)
+"""
 
 
 #fig.tight_layout()
