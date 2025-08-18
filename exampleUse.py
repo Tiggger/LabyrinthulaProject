@@ -11,23 +11,23 @@ from PIL import Image
 #import image - download image from repo and change path as needed
 #nikon 3
 #1
-#image_dir='/Users/johnwhitfield/Desktop/t_21_21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
+image_dir='/Users/johnwhitfield/Desktop/t_21_21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 #2
 #image_dir='/Users/johnwhitfield/Desktop/proper/t:20:21 - 2025-07-28_singleCellResolving+20xwithExtender_BF_.jpg'
 
 #nikon 1
 #20x
-image_dir='/Users/johnwhitfield/Desktop/reprocessing/20x/t:5:12 - 2025-08-12_20x_BF_featureImages_MMStack_Pos0.jpg'
+#image_dir='/Users/johnwhitfield/Desktop/reprocessing/20x/t:5:12 - 2025-08-12_20x_BF_featureImages_MMStack_Pos0.jpg'
 
 #40x
 #image_dir='/Users/johnwhitfield/Desktop/reprocessing/40x/t:28:33 - 2025-08-12_40x_BF_featureImages_MMStack_Pos0.jpg'
 
 #setting dimensions of grid
-xsplit=5
-ysplit=5
+xsplit=2
+ysplit=2
 #setting the size of the gaussian kernel, must be changed for different magnfications. 4 is good for 20x, would need to be increased for lesser magnifications
-kernelSize=4 
+kernelSize=4
 
 #defining pixelSizes
 nikon1_20x_pixelSize=0.55
